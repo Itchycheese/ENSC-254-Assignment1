@@ -3,18 +3,19 @@
 Reset_Handler:
  .global Reset_Handler; @ The entry point on reset
  
- testingloop:
+ /* testingloop:
 	ldr sp, =#0x40004000; @ Initialize SP just past the end of RAM
 	ldr r11, =TestTable; 
 	mov r10, #0; 
 	ldr r0, [r11,r10];
 	cmp r0, #0xFFFFFFFF;
-	beq actuallydone;
+	beq actuallydone; */
 ; @ The main program
 main:
 	
-	ldr r0, [r11, r10]; @ Load value of N into first argument
-	mov r1, #0;
+	//ldr r0, [r11, r10]; @ Load value of N into first argument
+	mov r0, #100; //For testing purposes.
+	mov r1, #0; 
 	cmp r0, r1;@ checks if N is 0
 	beq n_is_0;
 	mov r1, #1;@ checks if N is 1
@@ -96,11 +97,12 @@ sub_fib:
 	mov r12, #2;
 	str r12, [r5, #0];
 	sub R4, R4, #2;
+	push {LR};
 
 loop:	
-	push {LR};
+	
 	bl add_128;			@ Perform a 128-bit add
-	BCS preoverflow;		@ Detect if our variable overflowed by looking
+	BCS overflow;		@ Detect if our variable overflowed by looking
 ;						@ at the carry flag after the top word add
 ;						@ If so, branch to "overflow"
 	ldr R6, [R5]
@@ -114,11 +116,10 @@ done:
 	pop {PC};
 	pop {r4-r5} ;@ <Restore registers, and load LR into SP>
 
-preoverflow: 
-	ADD R6, R6,#1; 		@ increment counter for Var_n
-	str R6, [R5, #0];	@ Store Var_n
+
 overflow:
-	b checkresults;			@ Oops, the add overflowed the variable!
+	b overflow;
+	//b checkresults;			@ Oops, the add overflowed the variable!
 	
 	; @ Subroutine to load two words from the variables into memory
 add_128:	
@@ -135,14 +136,14 @@ add_128:
 	mov r1, #12;
 	bl store_var
 
-	mov r1, #8;
+	/*mov r1, #12;
 	bl load_var	
 ;	@ 32-bit add
 	adcs r0, r0, r1;	@ Add word 2 with carry, set status register
-	mov r1, #8;
+	mov r1, #12;
 	
 	bl store_var
-; 	@ Complete the 128-bit add
+; 	@ Complete the 128-bit add */
 
 ; 	@ What issue do we have returning from the subroutine? How can we fix it?
 	pop {PC};		@ Return from subroutine
@@ -170,7 +171,7 @@ store_var:
 checkresults:
 
 	push {R12};
-	ldr R12, =Testresults;
+	ldr R12, =var_a;
 	mov r7, #0;
 	add r10, #4; @ increments the r10 counter to next memory value (calculated n). 
 	ldr r9, [r11, r10]; @loads the value into r9
@@ -199,6 +200,7 @@ checkresults:
 	
 
 actuallydone: 
+	ldr R12, =var_b;
 	b actuallydone; @ it's actually done at this point. Loop forever.
 	
 	;@ ...
@@ -206,8 +208,8 @@ actuallydone:
 	;@ ...
 	.data
 var_n: .space 4;@ 1 word/32 bits
-var_a: .space 512;@ (512 for) 128 words/4096 bits
-var_b: .space 512;@ (512 for) 128 words/4096 bits 
+var_a: .space 16;@ (512 for) 128 words/4096 bits
+var_b: .space 16;@ (512 for) 128 words/4096 bits 
 
 ;@ Testing parameters format 1
 TestTable:
