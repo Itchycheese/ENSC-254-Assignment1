@@ -168,22 +168,34 @@ store_var:
 
 
 checkresults:
-	
+
+	push {R12};
+	ldr R12, =Testresults;
+	mov r7, #0;
 	add r10, #4; @ increments the r10 counter to next memory value (calculated n). 
 	ldr r9, [r11, r10]; @loads the value into r9
-	ldr r8, [r5,#0]; loads the correct result of n into r8
-	;@cmp r9, r8;
-	;@movne r7, #1;
-	;@add r10, #8; @ increments the r10 counter to next memory value (fib msw). 
-	;@ldr r9, [r11, r10]; @loads the value into r9
-	;@ldr r8, [r5, #8]; loads the correct result of n into r8
-	;@cmp r9, r8;
-	;@movne r7, #1;
-	;@add r10, #4; @ increments the r10 counter to next memory value (fib lsw). 
-	;@ldr r9, [r11, r10]; @loads the value into r9
-	;@ldr r8, [r5, #12]; loads the correct result of n into r8
-	;@cmp r9, r8;
-	;@movne r7, #1;
+	ldr r8, [r5, #12]; @loads the correct result of n into r8
+	cmp r9, r8;
+	movne r7, #1;
+	add r10, #8; @ increments the r10 counter to next memory value (fib msw). 
+	ldr r9, [r11, r10]; @loads the value into r9
+	ldr r8, [r5, #8]; @loads the correct result of n into r8
+	cmp r9, r8;
+	movne r7, #1;
+	add r10, #4; @ increments the r10 counter to next memory value (fib lsw). 
+	ldr r9, [r11, r10]; @loads the value into r9
+	ldr r8, [r5, #12]; @loads the correct result of n into r8
+	cmp r9, r8;
+	movne r7, #1;
+	
+	pop {R12};
+	add r10, #4;
+	ldr r0, [r11,r10];
+	cmp r0, #0xFFFFFFFF;
+	beq actuallydone;
+	ldr R4, =main;
+	mov PC, R4;
+	
 	
 
 actuallydone: 
@@ -194,8 +206,8 @@ actuallydone:
 	;@ ...
 	.data
 var_n: .space 4;@ 1 word/32 bits
-var_a: .space 512;@ 128 words/4096 bits
-var_b: .space 512;@ 128 words/4096 bits 
+var_a: .space 512;@ (512 for) 128 words/4096 bits
+var_b: .space 512;@ (512 for) 128 words/4096 bits 
 
 ;@ Testing parameters format 1
 TestTable:
@@ -208,3 +220,5 @@ TestTable:
             .word  175,  175,    0, 0x014219F1,    0x792930BD    ;@ 6
             .word 1000,  186,    1, 0x9523A14F,    0x1AAB3E85    ;@ 7
             .word    0xFFFFFFFF                            ;@ mark end of table
+			
+Testresults: .space 28;@ 7tests *4btyes = 28 needed to store test results.  
