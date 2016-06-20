@@ -105,20 +105,28 @@ sub_fib:
 loop:	
 	;@ load the number of words currently required.
 	
-	mov R5, #0
+	mov R5, #0 ;@R5 is the current offset.
 	
 add_4096:
+	ldr R6, =var_numberofwords;
+	ldr R7, [R6, #0];
+add_arbit:
 	bl add_32;			@ Perform a 32-bit add
 	push {LR};
 	BLCS overflow;		@ Detect if our variable overflowed by looking
 ;						@ at the carry flag after the top word add
 ;						@ If so, branch to "overflow"
-	push {r5};
+	//add R5, R5, #12; 	@ increment the offset for the next word
+	//subs R7, R7, #1;	@ decrement the number of words left to process counter
+	//BNE add_arbit;
+	
+
+	push {r5-r6};
 	ldr R5, =var_n;
 	ldr R6, [R5]
 	ADD R6, R6,#1; 		@ increment counter for Var_n
 	str R6, [R5, #0];	@ Store Var_n
-	pop {R5};
+	pop {R5-r6};
 	SUBS R4, R4, #1;	@ Decrement the loop counter 
 	BNE add_4096;		@ Have we reached the desired term yet?
 
@@ -134,11 +142,17 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 	push {R0-R3};
 	ldr R0, =var_numberofwords;
 	ldr R1, [R0, #0]; @load the value for number of words requied 
-	mov r2, #512; @ load maximum number of words for 4096 bits.
+	mov r2, #4; @ load maximum number of words for 4096 bits (512, 4 is for testing).
 	cmp r2, r1;
 	beq checkresults;
 	ADD R1, R1, #1;@ incredment the counter for number of words by one
 	str R1, [R0,#0]; @ store that back into memory
+	
+	push {R0-R1}
+	ldr R0, =var_b;
+	ldr R1, [R0, R5];
+	add R1, R1, #1; @ add one to the next word ahead
+	pop {R0 - R1}
 	
 	
 	
