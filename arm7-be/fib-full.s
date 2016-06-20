@@ -12,7 +12,9 @@ Reset_Handler:
 	beq actuallydone; */
 ; @ The main program
 main:
-	
+	mov r0, #1;
+	ldr r1, =var_numberofwords; //get the pointer to the variable number of words.
+	str r0, [r1, #0];
 	//ldr r0, [r11, r10]; @ Load value of N into first argument
 	mov r0, #10; //For testing purposes.
 	mov r1, #0; 
@@ -41,8 +43,8 @@ n_is_0:
 	
 	mov r12, #0
 	str r12, [r5, #0];
-	str r12, [r2, #12];
-	str r12, [r3, #12];
+	str r12, [r2, #0];
+	str r12, [r3, #0];
 	b checkresults;
 	
 n_is_1:
@@ -54,9 +56,9 @@ n_is_1:
 	
 	str r0, [r5, #0];
 	mov r12, #0;
-	str r12, [r2, #12];
+	str r12, [r2, #0];
 	mov r12, #1
-	str r12, [r3, #12];
+	str r12, [r3, #0];
 	b checkresults;
 	
 n_is_2:
@@ -68,8 +70,8 @@ n_is_2:
 	
 	str r0, [r5, #0];
 	mov r12, #1
-	str r12, [r2, #12];
-	str r12, [r3, #12];
+	str r12, [r2, #0];
+	str r12, [r3, #0];
 	b checkresults;
 
 sub_fib:
@@ -93,17 +95,20 @@ sub_fib:
 ;	@ Complete the initialization for var_a and var_b
 
 	mov r12, #1;	@ Constant used for initializing LSW of variables
-	str r12, [r2, #12];
-	str r12, [r3, #12];
+	str r12, [r2, #0];
+	str r12, [r3, #0];
 	mov r12, #2;
 	str r12, [r5, #0];
 	sub R4, R4, #2;
 	push {LR};
 
 loop:	
+	;@ load the number of words currently required.
 	
-	bl add_128;			@ Perform a 128-bit add
-	BCS overflow;		@ Detect if our variable overflowed by looking
+add_4096:
+	bl add_32;			@ Perform a 32-bit add
+	push {LR};
+	BLCS overflow;		@ Detect if our variable overflowed by looking
 ;						@ at the carry flag after the top word add
 ;						@ If so, branch to "overflow"
 	ldr R6, [R5]
@@ -118,48 +123,57 @@ done:
 	pop {r4-r5} ;@ <Restore registers, and load LR into SP>
 
 
-overflow:
+overflow: ;@ increments the number of words, adds 1 to the next word in front of it.
+		;@ inputs R5 - current offset.
+	/*
+	push {R0-R3};
+	ldr R0, =var_numberofwords;
+	ldr R1, [R0, #0]; @load the value for number of words requied 
+	mov r2, #512; @ load maximum number of words for 4096 bits.
+	cmp r2, r1;
+	beq checkresults;
+	ADD R1, R1, #1;@ incredment the counter for number of words by one
+	str R1, [R0,#0]; @ store that back into memory
+	
+	
+	
+	pop {R0-R3};
+	pop {PC}; 
+	*/
 	b overflow;
 	//b checkresults;			@ Oops, the add overflowed the variable!
 	
 	; @ Subroutine to load two words from the variables into memory
-add_128:	
+add_32:	
 	
 ;	@ Start with the least significant word (word 0)
 ;	@ We add the two words without carry for the LSW.
 ;	@ We add all other words using a carry.
 ;	@ We set the status register for subsequent operations
 	push {LR};
-	mov r1, #12;
+	push {r4};
+	mov r4, #0; @ sets the offset to 0 for little endian.
 	bl load_var	
+	pop {r4};
 ;	@ 32-bit add
 	adds r0, r0, r1;	@ Add word 0, set status register
-	mov r1, #12;
+	mov r1, #0; @sets the offset to 0 for little endian
 	bl store_var
-
-	/*mov r1, #12;
-	bl load_var	
-;	@ 32-bit add
-	adcs r0, r0, r1;	@ Add word 2 with carry, set status register
-	mov r1, #12;
-	
-	bl store_var
-; 	@ Complete the 128-bit add */
 
 ; 	@ What issue do we have returning from the subroutine? How can we fix it?
 	pop {PC};		@ Return from subroutine
 
 ; 	@ Subroutine to load two words from the variables into memory
-load_var:
+load_var: ;@ inputs: R2 - var_a, R3 - var_b, R4 - offset. Outputs: R0 - var_a, R1 - var_b.
 ; 	@ Update this subroutine to take an argument so it can
 ; 	@ be reused for loading all four words
-	ldr r0, [r2, #12];	@ Load the value of var_a
-	ldr r1, [r3, #12];	@ Load the value of var_b
+	ldr r0, [r2, R4];	@ Load the value of var_a
+	ldr r1, [r3, R4];	@ Load the value of var_b
 	mov PC, LR;		@ Return from subroutine
 
 ; 	@ Subroutine to shift move var_b into var_a and store
 ; 	@ the result of the add.
-store_var:
+store_var: ;@ R1 is the offset, R3 is pointer to var_b, R2 is pointer to var_a, R0 is the new var_b
 ; 	@ Update this subroutine to take an argument so it can
 ; 	@ be reused for storing all four words
 	ldr	r12,[r3, r1];   @ Move var_b ...
@@ -211,7 +225,7 @@ actuallydone:
 var_n: .space 4;@ 1 word/32 bits
 var_a: .space 16;@ (512 for) 128 words/4096 bits
 var_b: .space 16;@ (512 for) 128 words/4096 bits 
-
+var_numberofwords: .space 4; @ Max 512 words for 4096 bits.
 ;@ Testing parameters format 1
 TestTable:
 ;@                   nin,nout,  of, fib msw,     fib lsw        ;@ test number
