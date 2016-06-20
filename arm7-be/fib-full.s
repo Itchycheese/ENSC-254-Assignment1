@@ -14,7 +14,7 @@ Reset_Handler:
 main:
 	
 	//ldr r0, [r11, r10]; @ Load value of N into first argument
-	mov r0, #100; //For testing purposes.
+	mov r0, #10; //For testing purposes.
 	mov r1, #0; 
 	cmp r0, r1;@ checks if N is 0
 	beq n_is_0;
@@ -28,7 +28,8 @@ main:
 	
 	bl sub_fib; @ Find Nth value of the Fibonacci sequence
 stop:
-	b checkresults;
+	b stop;
+	//b checkresults;
 	;@ ...
 	
 n_is_0:
