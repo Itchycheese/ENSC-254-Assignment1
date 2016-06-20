@@ -105,17 +105,22 @@ sub_fib:
 loop:	
 	;@ load the number of words currently required.
 	
+	mov R5, #0
+	
 add_4096:
 	bl add_32;			@ Perform a 32-bit add
 	push {LR};
 	BLCS overflow;		@ Detect if our variable overflowed by looking
 ;						@ at the carry flag after the top word add
 ;						@ If so, branch to "overflow"
+	push {r5};
+	ldr R5, =var_n;
 	ldr R6, [R5]
 	ADD R6, R6,#1; 		@ increment counter for Var_n
 	str R6, [R5, #0];	@ Store Var_n
+	pop {R5};
 	SUBS R4, R4, #1;	@ Decrement the loop counter 
-	BNE loop;		@ Have we reached the desired term yet?
+	BNE add_4096;		@ Have we reached the desired term yet?
 
 done:
 	@ algorithm done
@@ -144,7 +149,7 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 	//b checkresults;			@ Oops, the add overflowed the variable!
 	
 	; @ Subroutine to load two words from the variables into memory
-add_32:	
+add_32:	;@ uses R5 for offset input
 	
 ;	@ Start with the least significant word (word 0)
 ;	@ We add the two words without carry for the LSW.
@@ -152,12 +157,12 @@ add_32:
 ;	@ We set the status register for subsequent operations
 	push {LR};
 	push {r4};
-	mov r4, #0; @ sets the offset to 0 for little endian.
+	mov r4, R5; @ sets the offset to 0 for little endian.
 	bl load_var	
 	pop {r4};
 ;	@ 32-bit add
 	adds r0, r0, r1;	@ Add word 0, set status register
-	mov r1, #0; @sets the offset to 0 for little endian
+	mov r1, R5; @sets the offset to 0 for little endian
 	bl store_var
 
 ; 	@ What issue do we have returning from the subroutine? How can we fix it?
