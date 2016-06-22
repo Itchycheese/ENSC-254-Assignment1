@@ -12,11 +12,11 @@ Reset_Handler:
 	beq actuallydone; */
 ; @ The main program
 main:
-	mov r0, #1;
+	mov r0, #1; @initialises the number of words to 1
 	ldr r1, =var_numberofwords; //get the pointer to the variable number of words.
-	str r0, [r1, #0];
+	str r0, [r1, #0]; // initialsises the number of words to 1
 	//ldr r0, [r11, r10]; @ Load value of N into first argument
-	mov r0, #10; //For testing purposes.
+	mov r0, #50; //For testing purposes. Loads the value on N into first argument.
 	mov r1, #0; 
 	cmp r0, r1;@ checks if N is 0
 	beq n_is_0;
@@ -31,6 +31,7 @@ main:
 	bl sub_fib; @ Find Nth value of the Fibonacci sequence
 stop:
 	b stop;
+	
 	//b checkresults;
 	;@ ...
 	
@@ -45,7 +46,8 @@ n_is_0:
 	str r12, [r5, #0];
 	str r12, [r2, #0];
 	str r12, [r3, #0];
-	b checkresults;
+	//b checkresults;
+	b done; //for testing only
 	
 n_is_1:
 	ldr r5, =var_n;
@@ -59,7 +61,8 @@ n_is_1:
 	str r12, [r2, #0];
 	mov r12, #1
 	str r12, [r3, #0];
-	b checkresults;
+	//b checkresults;
+	b done; //for testing only
 	
 n_is_2:
 	ldr r5, =var_n;
@@ -72,7 +75,8 @@ n_is_2:
 	mov r12, #1
 	str r12, [r2, #0];
 	str r12, [r3, #0];
-	b checkresults;
+	//b checkresults;
+	b done; //for testing only
 
 sub_fib:
 	push {r4-r5} ;@<Store registers and LR to stack>
@@ -108,11 +112,11 @@ loop:
 	mov R5, #0 ;@R5 is the current offset.
 	
 add_4096:
-	ldr R6, =var_numberofwords;
-	ldr R7, [R6, #0];
+	ldr R6, =var_numberofwords; //pointer to the number of words.
+	ldr R7, [R6, #0]; //actual number of words.
 add_arbit:
 	bl add_32;			@ Perform a 32-bit add
-	push {LR};
+	//push {LR};
 	BLCS overflow;		@ Detect if our variable overflowed by looking
 ;						@ at the carry flag after the top word add
 ;						@ If so, branch to "overflow"
@@ -138,7 +142,7 @@ done:
 
 overflow: ;@ increments the number of words, adds 1 to the next word in front of it.
 		;@ inputs R5 - current offset.
-	/*
+	push {LR};
 	push {R0-R3};
 	ldr R0, =var_numberofwords;
 	ldr R1, [R0, #0]; @load the value for number of words requied 
@@ -148,18 +152,22 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 	ADD R1, R1, #1;@ incredment the counter for number of words by one
 	str R1, [R0,#0]; @ store that back into memory
 	
-	push {R0-R1}
+	push {R0-R1}; //clear registers cause i dont know what they do any more.
 	ldr R0, =var_b;
-	ldr R1, [R0, R5];
+	push {R5}; //saves the actual offset
+	add R5, R5, #4; //increments the offset to the next word
+	ldr R1, [R0, R5]; //loads R1 which is the value of the next word.
 	add R1, R1, #1; @ add one to the next word ahead
-	pop {R0 - R1}
+	str R1, [R0, R5];
+	pop {R5}; //restores the actual offset
+	pop {R0 - R1} //restores the stuff that i didnt know what they did.
 	
 	
 	
 	pop {R0-R3};
 	pop {PC}; 
-	*/
-	b overflow;
+	
+	//b overflow;
 	//b checkresults;			@ Oops, the add overflowed the variable!
 	
 	; @ Subroutine to load two words from the variables into memory
