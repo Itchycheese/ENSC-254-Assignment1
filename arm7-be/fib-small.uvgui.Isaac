@@ -21,7 +21,7 @@
     <View>
       <WinId>204</WinId>
       <ViewName>Performance Analyzer</ViewName>
-      <TableColWidths>1170 175 175 100</TableColWidths>
+      <TableColWidths>1144 175 175 100</TableColWidths>
     </View>
   </SECTreeCtrl>
 

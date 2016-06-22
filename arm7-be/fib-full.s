@@ -16,7 +16,7 @@ main:
 	ldr r1, =var_numberofwords; //get the pointer to the variable number of words.
 	str r0, [r1, #0]; // initialsises the number of words to 1
 	//ldr r0, [r11, r10]; @ Load value of N into first argument
-	mov r0, #50; //For testing purposes. Loads the value on N into first argument.
+	mov r0, #53; //For testing purposes. Loads the value on N into first argument.
 	mov r1, #0; 
 	cmp r0, r1;@ checks if N is 0
 	beq n_is_0;
@@ -109,20 +109,21 @@ sub_fib:
 loop:	
 	;@ load the number of words currently required.
 	
-	mov R5, #0 ;@R5 is the current offset.
+	
 	
 add_4096:
 	ldr R6, =var_numberofwords; //pointer to the number of words.
 	ldr R7, [R6, #0]; //actual number of words.
+	mov R5, #0 ;@R5 is the current offset.
 add_arbit:
 	bl add_32;			@ Perform a 32-bit add
 	//push {LR};
 	BLCS overflow;		@ Detect if our variable overflowed by looking
 ;						@ at the carry flag after the top word add
 ;						@ If so, branch to "overflow"
-	//add R5, R5, #12; 	@ increment the offset for the next word
-	//subs R7, R7, #1;	@ decrement the number of words left to process counter
-	//BNE add_arbit;
+	add R5, R5, #4; 	@ increment the offset for the next word
+	subs R7, R7, #1;	@ decrement the number of words left to process counter
+	BNE add_arbit;
 	
 
 	push {r5-r6};
@@ -148,7 +149,8 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 	ldr R1, [R0, #0]; @load the value for number of words requied 
 	mov r2, #4; @ load maximum number of words for 4096 bits (512, 4 is for testing).
 	cmp r2, r1;
-	beq checkresults;
+	//beq checkresults;
+	beq done;
 	ADD R1, R1, #1;@ incredment the counter for number of words by one
 	str R1, [R0,#0]; @ store that back into memory
 	
@@ -196,7 +198,8 @@ load_var: ;@ inputs: R2 - var_a, R3 - var_b, R4 - offset. Outputs: R0 - var_a, R
 ; 	@ be reused for loading all four words
 	ldr r0, [r2, R4];	@ Load the value of var_a
 	ldr r1, [r3, R4];	@ Load the value of var_b
-	mov PC, LR;		@ Return from subroutine
+
+mov PC, LR;		@ Return from subroutine
 
 ; 	@ Subroutine to shift move var_b into var_a and store
 ; 	@ the result of the add.
