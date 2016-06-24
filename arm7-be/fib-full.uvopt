@@ -129,9 +129,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>168</LineNumber>
+          <LineNumber>136</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>364</Address>
+          <Address>288</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -141,22 +141,6 @@
           <Filename>D:\Google_Drive\SFU\2016-02_Summer\ENSC_254\Assignment 1\ENSC-254-Assignment1\arm7-be\fib-full.s</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>118</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>240</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\Google_Drive\SFU\2016-02_Summer\ENSC_254\Assignment 1\ENSC-254-Assignment1\arm7-be\fib-full.s</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\fib_full\fib-full.s\118</Expression>
         </Bp>
       </Breakpoint>
       <MemoryWindow1>

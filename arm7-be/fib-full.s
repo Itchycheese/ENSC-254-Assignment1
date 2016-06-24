@@ -16,7 +16,7 @@ main:
 	ldr r1, =var_numberofwords; //get the pointer to the variable number of words.
 	str r0, [r1, #0]; // initialsises the number of words to 1
 	//ldr r0, [r11, r10]; @ Load value of N into first argument
-	mov r0, #53; //For testing purposes. Loads the value on N into first argument.
+	mov r0, #100; //For testing purposes. Loads the value on N into first argument.
 	mov r1, #0; 
 	cmp r0, r1;@ checks if N is 0
 	beq n_is_0;
@@ -151,7 +151,8 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 	cmp r2, r1;
 	//beq checkresults;
 	beq done;
-	ADD R1, R1, #1;@ incredment the counter for number of words by one
+	cmp R7, #1;
+	ADDEQ R1, R1, #1;@ incredment the counter for number of words by one
 	str R1, [R0,#0]; @ store that back into memory
 	
 	push {R0-R1}; //clear registers cause i dont know what they do any more.
