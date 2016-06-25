@@ -21,7 +21,7 @@
     <View>
       <WinId>204</WinId>
       <ViewName>Performance Analyzer</ViewName>
-      <TableColWidths>1144 175 175 100</TableColWidths>
+      <TableColWidths>374 175 175 870</TableColWidths>
     </View>
   </SECTreeCtrl>
 
@@ -83,10 +83,10 @@
         <yPos>-1</yPos>
       </MaxPosition>
       <NormalPosition>
-        <Top>-23</Top>
-        <Left>522</Left>
-        <Right>1458</Right>
-        <Bottom>508</Bottom>
+        <Top>1</Top>
+        <Left>980</Left>
+        <Right>1916</Right>
+        <Bottom>532</Bottom>
       </NormalPosition>
     </WindowPosition>
     <MDIClientArea>
