@@ -146,6 +146,13 @@ add_4096:
 	ldr R6, =var_numberofwords; //pointer to the number of words.
 	ldr R7, [R6, #0]; //actual number of words.
 	mov R5, #0 ;@R5 is the current offset.
+	push {R8 - R9}; //resets the flag overflow.
+	ldr R8 , =flag_overflow;
+	ldr R9, [R8, #0];
+	mov R9, #0;
+	str R9, [R8, #0];
+	pop {r8 - r9}
+	mov R8, #0; //resets the overflow.
 add_arbit:
 	bl add_32;			@ Perform a 32-bit add
 	//push {LR};
@@ -183,7 +190,25 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 	//beq checkresults;
 	beq done;
 	cmp R7, #1;
-	ADDEQ R1, R1, #1;@ incredment the counter for number of words by one
+	bleq largest_overflow;
+	
+	
+	push {R0-R1};
+	ldr R0, =flag_overflow; //pointer to the overflow flag
+	ldr R1, [R0, #0]; //get the overflow flag
+	mov R1, #1; //set overflow flag = 1;
+	str R1, [R0, #0]; // store overflowflag to memory
+	pop {R0 - R1};
+	
+	pop {R0-R3};
+	pop {PC}; 
+	
+	//b overflow;
+	//b checkresults;			@ Oops, the add overflowed the variable!
+
+largest_overflow:
+push {LR};
+	ADD R1, R1, #1;@ incredment the counter for number of words by one
 	str R1, [R0,#0]; @ store that back into memory
 	
 	push {R0-R1}; //clear registers cause i dont know what they do any more.
@@ -196,13 +221,7 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 	pop {R5}; //restores the actual offset
 	pop {R0 - R1} //restores the stuff that i didnt know what they did.
 	
-	
-	
-	pop {R0-R3};
-	pop {PC}; 
-	
-	//b overflow;
-	//b checkresults;			@ Oops, the add overflowed the variable!
+	pop {PC};
 	
 	; @ Subroutine to load two words from the variables into memory
 add_32:	;@ uses R5 for offset input
@@ -217,6 +236,14 @@ add_32:	;@ uses R5 for offset input
 	bl load_var	
 	pop {r4};
 ;	@ 32-bit add
+	push {R4-R5};
+	ldr R4, =flag_overflow;
+	ldr R5, [R4, #0];
+	cmp R5, #1
+	ADDEQ R0, R0, #1;
+	mov R5, #0;
+	str R5, [R4,#0];
+	pop {R4 -R5};
 	adds r0, r0, r1;	@ Add word 0, set status register
 	mov r1, R5; @sets the offset to 0 for little endian
 	bl store_var
@@ -288,6 +315,7 @@ var_n: .space 4;@ 1 word/32 bits
 var_a: .space 16;@ (512 for) 128 words/4096 bits
 var_b: .space 16;@ (512 for) 128 words/4096 bits 
 var_numberofwords: .space 4; @ Max 512 words for 4096 bits.
+flag_overflow: .space 4; //flag for overflowing variable.
 ;@ Testing parameters format 1
 TestTable:
 ;@                   nin,nout,  of, fib msw,     fib lsw        ;@ test number
