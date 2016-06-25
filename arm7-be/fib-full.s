@@ -150,8 +150,8 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 	mov r2, #4; @ load maximum number of words for 4096 bits (512, 4 is for testing).
 	cmp r2, r1;
 	//beq checkresults;
-	beq stop;
-	cmp R7, #0;
+	beq done;
+	cmp R7, #1;
 	ADDEQ R1, R1, #1;@ incredment the counter for number of words by one
 	str R1, [R0,#0]; @ store that back into memory
 	
