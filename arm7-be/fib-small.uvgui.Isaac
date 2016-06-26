@@ -11,7 +11,7 @@
     <View>
       <WinId>38003</WinId>
       <ViewName>Registers</ViewName>
-      <TableColWidths>99 203</TableColWidths>
+      <TableColWidths>115 187</TableColWidths>
     </View>
     <View>
       <WinId>346</WinId>
@@ -21,7 +21,7 @@
     <View>
       <WinId>204</WinId>
       <ViewName>Performance Analyzer</ViewName>
-      <TableColWidths>374 175 175 870</TableColWidths>
+      <TableColWidths>1170 175 175 424</TableColWidths>
     </View>
   </SECTreeCtrl>
 

@@ -46,10 +46,21 @@ testing_initialisation:
 	cmp r0, #0xFFFFFFFF;
 	beq done_testing; 
 ; @ The main program
+
+
+initialisation: //(of memory)
+	ldr R0, =var_n
+	mov R1, #10;
+	mov R2, #0;
+	mov R3, #0;
+	wipe:
+	str R2, [R0, R3];
+	subs R1, R1, #1;
+	bpl wipe
 main:
 	mov r0, #1; @initialises the number of words to 1
 	ldr r1, =var_numberofwords; //get the pointer to the variable number of words.
-	str r0, [r1, #0]; // initialsises the number of words to 0
+	str r0, [r1, #0]; // initialsises the number of words to 1
 	push {r8-r11};
 	ldr R9, =test_offset;
 	ldr R8, [R9,#0];
@@ -301,7 +312,9 @@ store_var: ;@ R1 is the offset, R3 is pointer to var_b, R2 is pointer to var_a, 
 	str r0, [r3, r1];	@ Store the result into var_b
 	mov pc, lr;		@ Return from subroutine
 		
+		
 
+	
 
 checkresults:
 	push {R0 - R12};
@@ -325,14 +338,14 @@ checkresults:
 	
 	add R9, #4;
 	ldr R10, [R8,R9]; // loads in testTable msw
-	ldr R7, =var_n;
+	ldr R7, =var_b;
 	ldr R6, [R7, #12]; // loads in calc msw
 	cmp R6, R10;
 	addne R4, #1;
 	
 	add R9, #4;
 	ldr R10, [R8,R9]; // loads in testTable lsw
-	ldr R7, =var_n;
+	ldr R7, =var_b;
 	ldr R6, [R7, #0]; // loads in calc lsw
 	cmp R6, R10;
 	addne R4, #1;
@@ -354,8 +367,7 @@ checkresults:
 	str r9, [R5,#0];
 	pop {R0 - R12};
 	
-	ldr R4, =main;
-	mov PC, R4;
+	b initialisation;
 	
 	
 
@@ -377,13 +389,13 @@ test_offset: .word 0;
 test_number: .word 0;
 TestTable:
 ;@                   nin,nout,  of, fib msw,     fib lsw        ;@ test number
+			.word  175,  175,    0, 0x014219F1,    0x792930BD    ;@ 6
+            .word 1000,  186,    1, 0x9523A14F,    0x1AAB3E85    ;@ 7
             .word    5,    5,    0, 0,             5            ;@ 1
             .word    1,    1,    0, 0,             1            ;@ 2
             .word    0,    0,    0, 0,             0            ;@ 3
             .word    2,    2,    0, 0,             1            ;@ 4
             .word    90,  90,    0, 0,             0xA1BA7878    ;@ 5
-            .word  175,  175,    0, 0x014219F1,    0x792930BD    ;@ 6
-            .word 1000,  186,    1, 0x9523A14F,    0x1AAB3E85    ;@ 7
             .word    0xFFFFFFFF                            ;@ mark end of table
 			
 Testresults: .space 7;@ 7tests *4btyes = 28 needed to store test results.  
