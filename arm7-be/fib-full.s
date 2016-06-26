@@ -47,20 +47,27 @@ testing_initialisation:
 	beq done_testing; 
 ; @ The main program
 
+init:
+	mov r0, #4;
+	ldr r1, =var_a ; // adress of words
+	ldr r2, =var_b ; // adress of words
+	mov r3, #0; // offset, increases by 4
+	mov r4, #0; // set N value to 0
+	mov r5, #0; // store 0;
 
-initialisation: //(of memory)
-	ldr R0, =var_n
-	mov R1, #10;
-	mov R2, #0;
-	mov R3, #0;
-	wipe:
-	str R2, [R0, R3];
-	subs R1, R1, #1;
-	bpl wipe
 main:
+	str r5, [r1, r3];
+	str r5, [r2, r3];
+	add r4, #1;
+	add r3, #4;
+	cmp r0, r4;
+	bne main;
+	
+	str r5, [r2, r3];
+
 	mov r0, #1; @initialises the number of words to 1
 	ldr r1, =var_numberofwords; //get the pointer to the variable number of words.
-	str r0, [r1, #0]; // initialsises the number of words to 1
+	str r0, [r1, #0]; // initialsises the number of words to 0
 	push {r8-r11};
 	ldr R9, =test_offset;
 	ldr R8, [R9,#0];
@@ -219,7 +226,7 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 	
 	ldr R0, =var_numberofwords;
 	ldr R1, [R0, #0]; @load the value for number of words requied 
-	mov r2, #5; @ load maximum number of words for 4096 bits (512, 5 is for 4 words, 129 for 128 words). (PARAMETER)
+	mov r2, #129; @ load maximum number of words for 4096 bits (512, 5 is for 4 words, 129 for 128 words). (PARAMETER)
 	cmp r2, r1;
 	//beq checkresults;
 	beq done;
@@ -270,7 +277,7 @@ add_32:	;@ uses R5 for offset input
 	push {R0-R1};
 	ldr R0, =var_numberofwords;
 	ldr R1, [R0, #0]; @load the value for number of words requied 
-	cmp R1, #5; @ load maximum number of words for 4096 bits (512, 5 is for 4 words). (PARAMETER);
+	cmp R1, #129; @ load maximum number of words for 4096 bits (512, 5 is for 4 words). (PARAMETER);
 	beq done_overflow;
 	pop {R0-R1};
 	
@@ -312,13 +319,11 @@ store_var: ;@ R1 is the offset, R3 is pointer to var_b, R2 is pointer to var_a, 
 	str r0, [r3, r1];	@ Store the result into var_b
 	mov pc, lr;		@ Return from subroutine
 		
-		
 
-	
 
 checkresults:
 	push {R0 - R12};
-	mov R4, #0;
+	mov R4, #0; // R4 counts the number of wrong answers and stores them in memory.
 	ldr R8, =TestTable;
 	ldr R5, =test_offset
 	ldr R9, [R5, #0];
@@ -339,7 +344,12 @@ checkresults:
 	add R9, #4;
 	ldr R10, [R8,R9]; // loads in testTable msw
 	ldr R7, =var_b;
-	ldr R6, [R7, #12]; // loads in calc msw
+	ldr R1, =var_numberofwords;
+	mov R2, #4;
+	ldr R1, [R1,#0];
+	sub R1, R1, #1;
+	mul R3, R1, R2;
+	ldr R6, [R7, R3]; // loads in calc msw
 	cmp R6, R10;
 	addne R4, #1;
 	
@@ -367,7 +377,10 @@ checkresults:
 	str r9, [R5,#0];
 	pop {R0 - R12};
 	
-	b initialisation;
+	b init;
+	
+	//ldr R4, =init;
+	//mov PC, R4;
 	
 	
 
@@ -379,23 +392,28 @@ done_testing:
 	;@ ...
 	.data
 var_n: .space 4;@ 1 word/32 bits (PARAMETER FOR CHANGE OF BITS)
-var_a: .space 16;@ (512 for) 128 words/4096 bits
-var_b: .space 20;@ (516 for) 128 words/4096 bits cause I need that extra word. 
+var_a: .space 512;@ (512 for) 128 words/4096 bits
+var_b: .space 516;@ (516 for) 128 words/4096 bits cause I need that extra word. 
 var_numberofwords: .space 4; @ Max 512 words for 4096 bits.
 flag_overflow: .space 4; //flag for overflowing variable.
-test_n: .word  5905;
+test_n: .word  300;
 ;@ Testing parameters format 1
 test_offset: .word 0;
 test_number: .word 0;
-TestTable:
+TestTable: //dynamic most significant word
 ;@                   nin,nout,  of, fib msw,     fib lsw        ;@ test number
-			.word  175,  175,    0, 0x014219F1,    0x792930BD    ;@ 6
-            .word 1000,  186,    1, 0x9523A14F,    0x1AAB3E85    ;@ 7
-            .word    5,    5,    0, 0,             5            ;@ 1
-            .word    1,    1,    0, 0,             1            ;@ 2
+            .word    5,    5,    0, 5,             5            ;@ 1
+            .word    1,    1,    0, 1,             1            ;@ 2
             .word    0,    0,    0, 0,             0            ;@ 3
-            .word    2,    2,    0, 0,             1            ;@ 4
-            .word    90,  90,    0, 0,             0xA1BA7878    ;@ 5
+            .word    2,    2,    0, 1,             1            ;@ 4
+            .word    90,  90,    0, 0x27F80DDA,	   0xA1BA7878    ;@ 5
+			.word  175,  175,    0, 0x014219F1,    0x792930BD    ;@ 6
+            .word 1000, 1000,    0, 0x0021D8CB,    0x5CC0604B    ;@ 7
+			/*
+			.word 5901, 5901,	 0, 0,			   0			;@ 8
+			.word 5902, 5901, 	 1, 0,			   0 
+			*/
             .word    0xFFFFFFFF                            ;@ mark end of table
+
 			
-Testresults: .space 7;@ 7tests *4btyes = 28 needed to store test results.  
+Testresults: .space 9;@ 7tests *4btyes = 28 needed to store test results.  
