@@ -1,18 +1,20 @@
  ;@============================================================================
 ;@
-;@ Student Name 1: student1
-;@ Student 1 #: 123456781
-;@ Student 1 userid (email): stu1 (stu1@sfu.ca)
+;@ Student Name 1: Isaac Cheng Hui Tan
+;@ Student 1 #: 301247997
+;@ Student 1 userid (email): isaact@sfu.ca
 ;@
-;@ Student Name 2: student2
-;@ Student 2 #: 123456782
-;@ Student 2 userid (email): stu2 (stu2@sfu.ca)
+;@ Student Name 2: Dayton Pukanich
+;@ Student 2 #: 301252869
+;@ Student 2 userid (email): dpukanic@sfu.ca
 ;@
 ;@ Below, edit to list any people who helped you with the code in this file,
 ;@      or put ‘none’ if nobody helped (the two of) you.
 ;@
 ;@ Helpers: _everybody helped us/me with the assignment (list names or put ‘none’)__
-;@
+;@			Zhen,
+;@			BC Liquor
+;@			The water fountain outside the lab
 ;@ Also, reference resources beyond the course textbooks and the course pages on Canvas
 ;@ that you used in making your submission.
 ;@
@@ -34,20 +36,28 @@
 Reset_Handler:
  .global Reset_Handler; @ The entry point on reset
  
- /* testingloop:
+testing_initialisation:
 	ldr sp, =#0x40004000; @ Initialize SP just past the end of RAM
 	ldr r11, =TestTable; 
 	mov r10, #0; 
 	ldr r0, [r11,r10];
 	cmp r0, #0xFFFFFFFF;
-	beq actuallydone; */
+	beq done_testing; 
 ; @ The main program
 main:
 	mov r0, #1; @initialises the number of words to 1
 	ldr r1, =var_numberofwords; //get the pointer to the variable number of words.
 	str r0, [r1, #0]; // initialsises the number of words to 1
-	//ldr r0, [r11, r10]; @ Load value of N into first argument
-	mov r0, #100; //For testing purposes. Loads the value on N into first argument.
+	ldr r0, [r11, r10]; @ Load value of N into first argument
+	
+	/*
+	push {R11-R12}; //testing
+	ldr R11, =test_n; //testing
+	ldr R12, [R11,#0]; //testing
+	mov r0, R12; //For testing purposes. Loads the value on N into first argument.
+	pop {R11-R12}; //testing.
+	*/
+	
 	mov r1, #0; 
 	cmp r0, r1;@ checks if N is 0
 	beq n_is_0;
@@ -60,10 +70,10 @@ main:
 	
 	
 	bl sub_fib; @ Find Nth value of the Fibonacci sequence
-stop:
-	b stop;
+done:
+	// b done; 
 	
-	//b checkresults;
+	b checkresults;
 	;@ ...
 	
 n_is_0:
@@ -136,10 +146,6 @@ sub_fib:
 	str r12, [r5, #0];
 	sub R4, R4, #2;
 	push {LR};
-
-loop:	
-	;@ load the number of words currently required.
-	
 	
 	
 add_4096:
@@ -172,23 +178,34 @@ add_arbit:
 	pop {R5-r6};
 	SUBS R4, R4, #1;	@ Decrement the loop counter 
 	BNE add_4096;		@ Have we reached the desired term yet?
+	b done;
 
-done:
-	@ algorithm done
-	pop {PC};
-	pop {r4-r5} ;@ <Restore registers, and load LR into SP>
+done_overflow:
+	push {R0-R1};
+	ldr R0, =var_n;
+	ldr R1 , [R0,#0];
+	sub R1, R1, #1;
+	str R1, [R0,#0];
+	ldr R0, =flag_overflow;
+	ldr R1 , [R0,#0];
+	mov R1, #1;
+	str R1, [R0,#0];
+	pop {R0-R1};	
+	b done;
 
 
 overflow: ;@ increments the number of words, adds 1 to the next word in front of it.
 		;@ inputs R5 - current offset.
 	push {LR};
 	push {R0-R3};
+	
 	ldr R0, =var_numberofwords;
 	ldr R1, [R0, #0]; @load the value for number of words requied 
-	mov r2, #4; @ load maximum number of words for 4096 bits (512, 4 is for testing).
+	mov r2, #5; @ load maximum number of words for 4096 bits (512, 5 is for 4 words, 129 for 128 words). (PARAMETER)
 	cmp r2, r1;
 	//beq checkresults;
 	beq done;
+	
 	cmp R7, #1;
 	bleq largest_overflow;
 	
@@ -232,6 +249,13 @@ add_32:	;@ uses R5 for offset input
 ;	@ We set the status register for subsequent operations
 	push {LR};
 	push {r4};
+	push {R0-R1};
+	ldr R0, =var_numberofwords;
+	ldr R1, [R0, #0]; @load the value for number of words requied 
+	cmp R1, #5; @ load maximum number of words for 4096 bits (512, 5 is for 4 words). (PARAMETER);
+	beq done_overflow;
+	pop {R0-R1};
+	
 	mov r4, R5; @ sets the offset to 0 for little endian.
 	bl load_var	
 	pop {r4};
@@ -258,7 +282,7 @@ load_var: ;@ inputs: R2 - var_a, R3 - var_b, R4 - offset. Outputs: R0 - var_a, R
 	ldr r0, [r2, R4];	@ Load the value of var_a
 	ldr r1, [r3, R4];	@ Load the value of var_b
 
-mov PC, LR;		@ Return from subroutine
+	mov PC, LR;		@ Return from subroutine
 
 ; 	@ Subroutine to shift move var_b into var_a and store
 ; 	@ the result of the add.
@@ -273,50 +297,42 @@ store_var: ;@ R1 is the offset, R3 is pointer to var_b, R2 is pointer to var_a, 
 
 
 checkresults:
-
-	push {R12};
-	ldr R12, =var_a;
-	mov r7, #0;
-	add r10, #4; @ increments the r10 counter to next memory value (calculated n). 
-	ldr r9, [r11, r10]; @loads the value into r9
-	ldr r8, [r5, #12]; @loads the correct result of n into r8
-	cmp r9, r8;
-	movne r7, #1;
-	add r10, #8; @ increments the r10 counter to next memory value (fib msw). 
-	ldr r9, [r11, r10]; @loads the value into r9
-	ldr r8, [r5, #8]; @loads the correct result of n into r8
-	cmp r9, r8;
-	movne r7, #1;
-	add r10, #4; @ increments the r10 counter to next memory value (fib lsw). 
-	ldr r9, [r11, r10]; @loads the value into r9
-	ldr r8, [r5, #12]; @loads the correct result of n into r8
-	cmp r9, r8;
-	movne r7, #1;
+	push {R0 - R9};
+	ldr R0, =var_n;
+	ldr R0, [R0,#0];
 	
-	pop {R12};
+	add r10, #4;
+	ldr R1, [R10,#0];
+	
+	cmp R0, R10;
+	
+	
+	
 	add r10, #4;
 	ldr r0, [r11,r10];
 	cmp r0, #0xFFFFFFFF;
-	beq actuallydone;
+	beq done_testing;
 	ldr R4, =main;
+	pop {R0 -R9};
 	mov PC, R4;
 	
 	
 
-actuallydone: 
-	ldr R12, =var_b;
-	b actuallydone; @ it's actually done at this point. Loop forever.
+done_testing: 
+	b done_testing; @ it's actually done at this point. Loop forever.
 	
 	;@ ...
 
 	;@ ...
 	.data
-var_n: .space 4;@ 1 word/32 bits
+var_n: .space 4;@ 1 word/32 bits (PARAMETER FOR CHANGE OF BITS)
 var_a: .space 16;@ (512 for) 128 words/4096 bits
-var_b: .space 16;@ (512 for) 128 words/4096 bits 
+var_b: .space 20;@ (516 for) 128 words/4096 bits cause I need that extra word. 
 var_numberofwords: .space 4; @ Max 512 words for 4096 bits.
 flag_overflow: .space 4; //flag for overflowing variable.
+test_n: .word  5905;
 ;@ Testing parameters format 1
+test_offset: .word 0;
 TestTable:
 ;@                   nin,nout,  of, fib msw,     fib lsw        ;@ test number
             .word    5,    5,    0, 0,             5            ;@ 1
