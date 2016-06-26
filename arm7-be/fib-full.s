@@ -39,6 +39,8 @@ Reset_Handler:
 testing_initialisation:
 	ldr sp, =#0x40004000; @ Initialize SP just past the end of RAM
 	ldr r11, =TestTable; 
+	ldr r10, =test_offset;
+	ldr r10, [r10, #0];
 	mov r10, #0; 
 	ldr r0, [r11,r10];
 	cmp r0, #0xFFFFFFFF;
@@ -47,9 +49,14 @@ testing_initialisation:
 main:
 	mov r0, #1; @initialises the number of words to 1
 	ldr r1, =var_numberofwords; //get the pointer to the variable number of words.
-	str r0, [r1, #0]; // initialsises the number of words to 1
-	ldr r0, [r11, r10]; @ Load value of N into first argument
-	
+	str r0, [r1, #0]; // initialsises the number of words to 0
+	push {r8-r11};
+	ldr R9, =test_offset;
+	ldr R8, [R9,#0];
+	ldr R11, =TestTable;
+	ldr R10, [R11, R8];
+	mov r0, R10; @ Load value of N into first argument
+	pop {R8 -R11};
 	/*
 	push {R11-R12}; //testing
 	ldr R11, =test_n; //testing
@@ -297,23 +304,57 @@ store_var: ;@ R1 is the offset, R3 is pointer to var_b, R2 is pointer to var_a, 
 
 
 checkresults:
-	push {R0 - R9};
-	ldr R0, =var_n;
-	ldr R0, [R0,#0];
+	push {R0 - R12};
+	mov R4, #0;
+	ldr R8, =TestTable;
+	ldr R5, =test_offset
+	ldr R9, [R5, #0];
+	add R9, #4;
+	ldr R10, [R8,R9]; // loads in testTable var_n
+	ldr R7, =var_n;
+	ldr R6, [R7, #0]; // loads in calc var_n
+	cmp R6, R10;
+	addne R4, #1;
 	
-	add r10, #4;
-	ldr R1, [R10,#0];
+	add R9, #4;
+	ldr R10, [R8,R9]; // loads in testTable overflow
+	ldr R7, =flag_overflow;
+	ldr R6, [R7, #0]; // loads in calc overflow
+	cmp R6, R10;
+	addne R4, #1;
 	
-	cmp R0, R10;
+	add R9, #4;
+	ldr R10, [R8,R9]; // loads in testTable msw
+	ldr R7, =var_n;
+	ldr R6, [R7, #12]; // loads in calc msw
+	cmp R6, R10;
+	addne R4, #1;
 	
+	add R9, #4;
+	ldr R10, [R8,R9]; // loads in testTable lsw
+	ldr R7, =var_n;
+	ldr R6, [R7, #0]; // loads in calc lsw
+	cmp R6, R10;
+	addne R4, #1;
 	
+	ldr R1, =test_number; //load test number
+	ldr R2, [R1,#0];
 	
-	add r10, #4;
-	ldr r0, [r11,r10];
+	ldr R3, =Testresults; //store test results
+	str R4, [R3,R2];
+	
+	add R2, R2, #4; //add 1 to test number
+	str R2, [R1, #0]; 
+	
+	add r9, #4; //offset the offset for TestTable.
+	ldr r0, [r8,r9];
 	cmp r0, #0xFFFFFFFF;
 	beq done_testing;
+	
+	str r9, [R5,#0];
+	pop {R0 - R12};
+	
 	ldr R4, =main;
-	pop {R0 -R9};
 	mov PC, R4;
 	
 	
@@ -333,6 +374,7 @@ flag_overflow: .space 4; //flag for overflowing variable.
 test_n: .word  5905;
 ;@ Testing parameters format 1
 test_offset: .word 0;
+test_number: .word 0;
 TestTable:
 ;@                   nin,nout,  of, fib msw,     fib lsw        ;@ test number
             .word    5,    5,    0, 0,             5            ;@ 1
@@ -344,4 +386,4 @@ TestTable:
             .word 1000,  186,    1, 0x9523A14F,    0x1AAB3E85    ;@ 7
             .word    0xFFFFFFFF                            ;@ mark end of table
 			
-Testresults: .space 28;@ 7tests *4btyes = 28 needed to store test results.  
+Testresults: .space 7;@ 7tests *4btyes = 28 needed to store test results.  
