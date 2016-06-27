@@ -48,7 +48,7 @@ testing_initialisation:
 ; @ The main program
 
 init:
-	mov r0, #4;
+	mov r0, #128; //number of words to wipe. (PARAMETER)
 	ldr r1, =var_a ; // adress of words
 	ldr r2, =var_b ; // adress of words
 	mov r3, #0; // offset, increases by 4
