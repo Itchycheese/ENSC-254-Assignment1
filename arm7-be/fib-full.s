@@ -209,12 +209,16 @@ done_overflow:
 	push {R0-R1};
 	ldr R0, =var_n;
 	ldr R1 , [R0,#0];
-	sub R1, R1, #1;
+	//sub R1, R1, #1;
 	str R1, [R0,#0];
 	ldr R0, =flag_overflow;
 	ldr R1 , [R0,#0];
 	mov R1, #1;
 	str R1, [R0,#0];
+	ldr R0, =var_numberofwords;
+	ldr R1, [R0, #0];
+	sub R1, R1, #1;
+	str R1, [R0, #0];
 	pop {R0-R1};	
 	b done;
 
@@ -250,8 +254,6 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 
 largest_overflow:
 push {LR};
-	cmp R1, #128; //max number of words for 4096bits.
-	popeq {pc};
 	ADD R1, R1, #1;@ incredment the counter for number of words by one
 	str R1, [R0,#0]; @ store that back into memory
 	
@@ -415,8 +417,9 @@ TestTable: //dynamic most significant word
 			.word 5901, 5901,	 0, 0xbcc7e2fa,	   0x1f2b5a82	;@ 8
 			
 			.word 5902, 5902, 	 1, 0x317429C5,	   0x38EA491F; @9 
+			.word 6000, 5902,	 1, 0x317429C5,    0x38EA491F; @10
 			
             .word    0xFFFFFFFF                            ;@ mark end of table
 
 			
-Testresults: .space 9;@ 7tests *4btyes = 28 needed to store test results.  
+Testresults: .space 10;@ 7tests *4btyes = 28 needed to store test results.  
