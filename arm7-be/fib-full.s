@@ -250,6 +250,8 @@ overflow: ;@ increments the number of words, adds 1 to the next word in front of
 
 largest_overflow:
 push {LR};
+	cmp R1, #128; //max number of words for 4096bits.
+	popeq {pc};
 	ADD R1, R1, #1;@ incredment the counter for number of words by one
 	str R1, [R0,#0]; @ store that back into memory
 	
@@ -409,10 +411,11 @@ TestTable: //dynamic most significant word
             .word    90,  90,    0, 0x27F80DDA,	   0xA1BA7878    ;@ 5
 			.word  175,  175,    0, 0x014219F1,    0x792930BD    ;@ 6
             .word 1000, 1000,    0, 0x0021D8CB,    0x5CC0604B    ;@ 7
-			/*
-			.word 5901, 5901,	 0, 0,			   0			;@ 8
-			.word 5902, 5901, 	 1, 0,			   0 
-			*/
+			
+			.word 5901, 5901,	 0, 0xbcc7e2fa,	   0x1f2b5a82	;@ 8
+			
+			.word 5902, 5902, 	 1, 0x317429C5,	   0x38EA491F; @9 
+			
             .word    0xFFFFFFFF                            ;@ mark end of table
 
 			
