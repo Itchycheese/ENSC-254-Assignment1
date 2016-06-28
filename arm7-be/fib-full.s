@@ -273,6 +273,10 @@ store_var: // R1 is the offset, R3 is pointer to var_b, R2 is pointer to var_a, 
 	mov pc, lr;	// Return from subroutine
 
 checkresults:
+
+/* 	Checkresults looks at testTable and counts the number of wrong fields and stores the number of wrong fields in memory
+	
+*/
   	push {R0 - R12};
 	mov R4, #0; // R4 counts the number of wrong answers and stores them in memory.
 	ldr R8, =TestTable;
@@ -341,16 +345,16 @@ test_offset: .word 0;
 test_number: .word 0;
 TestTable: 
 //                  nin,nout,  of, fib msw,     fib lsw        
-            .word    5,    5,    0, 5,             5           
-            .word    1,    1,    0, 1,             1            
-            .word    0,    0,    0, 0,             0         
-            .word    2,    2,    0, 1,             1            
-            .word    90,  90,    0, 0x27F80DDA,	   0xA1BA7878    
-			.word  175,  175,    0, 0x014219F1,    0x792930BD   
-            .word 1000, 1000,    0, 0x0021D8CB,    0x5CC0604B   
-			.word 5901, 5901,	 0, 0xbcc7e2fa,	   0x1f2b5a82
-			.word 5902, 5902, 	 1, 0x317429C5,	   0x38EA491F
-			.word 6000, 5902,	 1, 0x317429C5,    0x38EA491F
-            .word 0xFFFFFFFF                           
+            .word    5,    5,    0, 5,             5           ;//normal case
+            .word    1,    1,    0, 1,             1           ;//small case
+            .word    0,    0,    0, 0,             0		   ;//zero case
+            .word    2,    2,    0, 1,             1           ;//small case
+            .word    90,  90,    0, 0x27F80DDA,	   0xA1BA7878  ;//normal case
+			.word  175,  175,    0, 0x014219F1,    0x792930BD  ;//normal case
+            .word 1000, 1000,    0, 0x0021D8CB,    0x5CC0604B  ;//normal case
+			.word 5901, 5901,	 0, 0xbcc7e2fa,	   0x1f2b5a82  ;//edge of the normal cases
+			.word 5902, 5902, 	 1, 0x317429C5,	   0x38EA491F  ;//edge of the high case
+			.word 6000, 5902,	 1, 0x317429C5,    0x38EA491F  ;//high case
+            .word 0xFFFFFFFF                           ;//end of testTable
 
 Testresults: .space 10;@ 7tests *4btyes = 28 needed to store test results.  
